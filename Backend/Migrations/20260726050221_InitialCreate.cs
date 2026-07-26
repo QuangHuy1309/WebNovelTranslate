@@ -17,10 +17,10 @@ namespace TranslationSystemAPI.Migrations
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     TitleEn = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
-                    TitleVn = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
-                    Author = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
-                    Description = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    CoverImageUrl = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    TitleVn = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: true),
+                    Author = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
+                    Description = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    CoverImageUrl = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Status = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
@@ -32,12 +32,11 @@ namespace TranslationSystemAPI.Migrations
                 name: "Chapters",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Id = table.Column<int>(type: "int", nullable: false),
                     StoryId = table.Column<int>(type: "int", nullable: false),
                     ChapterNumber = table.Column<double>(type: "float", nullable: false),
-                    TitleEn = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
-                    TitleVn = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
+                    TitleEn = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: true),
+                    TitleVn = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: true),
                     Status = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
@@ -82,8 +81,8 @@ namespace TranslationSystemAPI.Migrations
                     ChapterId = table.Column<int>(type: "int", nullable: false),
                     OrderIndex = table.Column<int>(type: "int", nullable: false),
                     OriginalText = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    TranslatedText = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    EditedText = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                    TranslatedText = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    EditedText = table.Column<string>(type: "nvarchar(max)", nullable: true)
                 },
                 constraints: table =>
                 {

@@ -6,15 +6,36 @@ import { segmentService } from "../../../services/segmentService";
 import { Segment } from "../../../types/segment";
 import SegmentEditor from "../../../components/SegmentEditor";
 import { useTheme } from "@/contexts/ThemeContext";
+import { chapterService } from '@/services/chapterService';
 
 export default function EditorPage() {
   const params = useParams();
   const chapterId = Number(params.chapterId);
+  const [isTranslating, setIsTranslating] = useState(false);
 
   const [segments, setSegments] = useState<Segment[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { isDarkMode, toggleDarkMode, fontSize, setFontSize } = useTheme();
+  const handleTranslateAll = async () => {
+    try {
+      setIsTranslating(true);
+      
+      // Gọi API dịch cả chương (chuyển chapterId từ chuỗi trên URL sang số)
+      await chapterService.translateChapter(Number(params.chapterId));
+      
+      // Sau khi dịch xong, gọi lại hàm tải dữ liệu để cập nhật bản dịch lên màn hình
+      // Ví dụ: await loadSegments(); hoặc fetchSegments(); 
+      // (Tùy thuộc vào tên hàm bạn đã viết trước đó)
+      
+      alert("🎉 Đã dịch xong toàn bộ chương!");
+    } catch (error) {
+      console.error("Lỗi dịch AI:", error);
+      alert("Đã xảy ra lỗi khi dịch.");
+    } finally {
+      setIsTranslating(false);
+    }
+  };
 
   useEffect(() => {
     const fetchSegments = async () => {
@@ -82,6 +103,17 @@ export default function EditorPage() {
             }`}
           >
             {isDarkMode ? "☀️ Chế độ Sáng" : "🌙 Chế độ Tối"}
+          </button>
+           <button 
+            onClick={handleTranslateAll}
+            disabled={isTranslating}
+            className={`ml-4 font-semibold py-1.5 px-4 rounded shadow-lg transition-all text-sm ${
+              isTranslating 
+                ? 'bg-gray-600 cursor-not-allowed text-gray-300' 
+                : 'bg-yellow-500 hover:bg-yellow-600 text-black'
+            }`}
+          >
+            {isTranslating ? '⏳ Đang dịch...' : '✨ Dịch AI Toàn Bộ'}
           </button>
         </div>
       </header>

@@ -1,22 +1,27 @@
-import api from './api';
+import api from "./api";
 
+// Khai báo interface Chapter ngay tại đây
 export interface Chapter {
   id: number;
-  // Nếu sau này bạn có thêm cột Name, Title ở database thì khai báo thêm ở đây
+  storyId?: number;
+  // Bạn có thể thêm các trường khác sau này nếu cần (ví dụ: title, status...)
 }
 
 export const chapterService = {
-  // Hàm lấy danh sách toàn bộ chương
+  // Hàm lấy danh sách chương
   getAllChapters: async (): Promise<Chapter[]> => {
-    const response = await api.get<Chapter[]>('/Chapters');
+    const response = await api.get('/Chapters');
     return response.data;
   },
-  // Nạp dữ liệu văn bản thô của một chương để hệ thống chunking
+
+  // Hàm nạp chương mới (Đã sửa originalText thành rawText để khớp Backend)
   ingestChapter: async (chapterId: number, originalText: string): Promise<void> => {
-    // Thay đổi route thành '/Chapters...' hoặc 'http://localhost:5068/api/Chapters...' 
-    // tùy thuộc vào cách bạn đã fix lỗi 404 vừa nãy nhé.
     await api.post(`/Chapters/${chapterId}/ingest`, {
-      originalText: originalText
+      rawText: originalText 
     });
+  },
+
+  translateChapter: async (chapterId: number): Promise<void> => {
+    await api.post(`/Chapters/${chapterId}/translate`);
   }
 };

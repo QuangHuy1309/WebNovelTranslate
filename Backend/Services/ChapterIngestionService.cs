@@ -29,6 +29,45 @@ namespace TranslationSystemAPI.Services
                 await _context.SaveChangesAsync();
             }
 
+            // 1. Kiểm tra xem Chương này đã tồn tại trong Database chưa
+            var chapter = await _context.Chapters.FindAsync(chapterId);
+
+            // 2. Nếu chưa tồn tại, tự động tạo mới Chapter
+            if (chapter == null)
+            {
+                // --- BƯỚC BỔ SUNG: XỬ LÝ KHÓA NGOẠI TRUYỆN (STORY) ---
+                // Giả sử chúng ta dùng Truyện có ID = 1 làm truyện mặc định để test
+                int defaultStoryId = 1;
+                var story = await _context.Stories.FindAsync(defaultStoryId);
+                
+                // Nếu Truyện ID 1 chưa tồn tại, tự động tạo nó luôn
+                if (story == null)
+                {
+                    story = new Story
+                    {
+                        // Bảng Stories của bạn vẫn đang dùng tự động tăng (IDENTITY), 
+                        // nên ta KHÔNG gán Id ở đây, SQL sẽ tự cấp phát.
+                        TitleEn = "Default Test Story",
+                        Status = 0 
+                    };
+                    _context.Stories.Add(story);
+                    await _context.SaveChangesAsync(); // Lưu để lấy ID thật do SQL cấp
+                    
+                    defaultStoryId = story.Id; // Cập nhật lại ID mới nhất
+                }
+                // ---------------------------------------------------
+
+                chapter = new Chapter
+                {
+                    Id = chapterId, // ID 162 mà bạn nhập trên web
+                    StoryId = defaultStoryId, // Gán ID truyện vào để thỏa mãn khóa ngoại!
+                    ChapterNumber = chapterId
+                };
+
+                _context.Chapters.Add(chapter);
+                await _context.SaveChangesAsync();
+            }
+
             // 2. CHIA KHỐI VĂN BẢN (CHUNKING)
             // Giới hạn khoảng 4000 ký tự mỗi Segment để tối ưu AI Quota
             var chunks = ChunkText(rawText, 4000);

@@ -68,9 +68,9 @@ app.MapGet("/", context => {
 
 app.UseHangfireDashboard("/hangfire");
 
-app.UseHttpsRedirection();
-
 app.UseCors("AllowNextJsFrontend");
+
+app.UseHttpsRedirection();
 
 app.UseAuthorization();
 

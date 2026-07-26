@@ -7,6 +7,7 @@ namespace TranslationSystemAPI.Models.Entities
 {
     public class Chapter
     {
+        [DatabaseGenerated(DatabaseGeneratedOption.None)]
         [Key]
         public int Id { get; set; }
 
