@@ -2,8 +2,10 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using TranslationSystemAPI.Data;
 using TranslationSystemAPI.Models.DTOs.Requests;
+using TranslationSystemAPI.Models.Entities;
 using TranslationSystemAPI.Services.Interfaces;
 using Hangfire;
+
 
 namespace TranslationSystemAPI.Controllers
 {
@@ -35,7 +37,38 @@ namespace TranslationSystemAPI.Controllers
             if (string.IsNullOrWhiteSpace(request.RawText))
                 return BadRequest("Raw text cannot be empty.");
 
+            if (request.StoryId <= 0)
+                return BadRequest("StoryId không hợp lệ.");
+
+            // 1. Kiểm tra Truyện có tồn tại không
+            var storyExists = await _context.Stories.AnyAsync(s => s.Id == request.StoryId);
+            if (!storyExists)
+                return NotFound("Story không tồn tại.");
+
+            // 2. Kiểm tra và Tạo Chapter (nếu chưa có) gán với StoryId
+            var chapter = await _context.Chapters.FindAsync(id);
+            if (chapter == null)
+            {
+                chapter = new Chapter
+                {
+                    Id = id,
+                    StoryId = request.StoryId,
+                    ChapterNumber = id // Theo quy tắc gán ID làm ChapterNumber của bạn
+                };
+                _context.Chapters.Add(chapter);
+                await _context.SaveChangesAsync();
+            }
+            else if (chapter.StoryId != request.StoryId)
+            {
+                // Tránh trường hợp gửi nhầm Chapter ID đã tồn tại ở một Story khác
+                return BadRequest("Chapter ID này đã thuộc về một truyện khác!");
+            }
+
+            // 3. Gọi Service cắt đoạn của bạn
+            // Lưu ý: Nếu trong hàm ProcessAndSaveSegmentsAsync đang có code cũ tạo 
+            // "Default Test Story", bạn hãy vào đó xóa đoạn code đó đi nhé.
             var segments = await _ingestionService.ProcessAndSaveSegmentsAsync(id, request.RawText);
+            
             return Ok(new { Message = "Ingested successfully", TotalSegments = segments.Count() });
         }
 

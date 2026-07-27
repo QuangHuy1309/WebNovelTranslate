@@ -15,9 +15,10 @@ export const chapterService = {
   },
 
   // Hàm nạp chương mới (Đã sửa originalText thành rawText để khớp Backend)
-  ingestChapter: async (chapterId: number, originalText: string): Promise<void> => {
+  ingestChapter: async (chapterId: number, storyId: number, originalText: string): Promise<void> => {
     await api.post(`/Chapters/${chapterId}/ingest`, {
-      rawText: originalText 
+      rawText: originalText,
+      storyId: storyId
     });
   },
 

@@ -5,6 +5,7 @@ using TranslationSystemAPI.Services.Interfaces;
 using Polly;
 using Polly.Extensions.Http;
 using Hangfire;
+using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -51,6 +52,12 @@ builder.Services.AddCors(options =>
               .AllowAnyMethod();
     });
 });
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        // Lệnh này giúp ngắt vòng lặp vô hạn
+        options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+    });
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

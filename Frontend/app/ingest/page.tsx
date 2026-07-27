@@ -11,20 +11,21 @@ export default function IngestPage() {
   const { isDarkMode, toggleDarkMode } = useTheme();
   
   const [chapterId, setChapterId] = useState("");
+  const [storyId, setStoryId] = useState("");
   const [originalText, setOriginalText] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [message, setMessage] = useState({ type: "", text: "" });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!chapterId || isNaN(Number(chapterId)) || !originalText.trim()) {
+    if (!chapterId || isNaN(Number(chapterId)) || !storyId || isNaN(Number(storyId)) || !originalText.trim()) {
       setMessage({ type: "error", text: "Vui lòng điền đủ ID hợp lệ và nội dung." });
       return;
     }
     setIsSubmitting(true);
     setMessage({ type: "", text: "" });
     try {
-      await chapterService.ingestChapter(Number(chapterId), originalText);
+      await chapterService.ingestChapter(Number(chapterId), Number(storyId), originalText);
       setMessage({ type: "success", text: "Thành công! Đang chuyển hướng..." });
       setTimeout(() => router.push(`/editor/${chapterId}`), 1500);
     } catch (error: unknown) {
@@ -50,6 +51,20 @@ export default function IngestPage() {
 
         <div className="p-6">
           <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Thêm khối Input cho Story ID này vào */}
+            <div>
+                <label className="block mb-1 font-medium text-gray-700 dark:text-gray-300">
+                    ID Truyện (Story ID)
+                </label>
+                <input 
+                    type="number" 
+                    value={storyId}
+                    onChange={(e) => setStoryId(e.target.value)}
+                    className="w-full border p-2 rounded bg-white dark:bg-gray-800 dark:border-gray-700" 
+                    placeholder="Ví dụ: 1"
+                    required 
+                />
+            </div>
             <div>
               <label className={`block text-sm font-semibold mb-2 ${isDarkMode ? "text-gray-300" : "text-gray-700"}`}>ID Chương</label>
               <input type="number" className={`w-full md:w-1/3 p-3 border rounded-lg outline-none ${isDarkMode ? "bg-gray-700 border-gray-600 text-white" : "bg-white border-gray-300"}`} value={chapterId} onChange={(e) => setChapterId(e.target.value)} disabled={isSubmitting} />
