@@ -8,15 +8,15 @@ namespace TranslationSystemAPI.Services
     public class ChapterTranslationService : IChapterTranslationService
     {
         private readonly TranslationDbContext _context;
-        private readonly IAiTranslator _aiTranslator;
+        private readonly ITranslationManager _translationManager;
 
-        public ChapterTranslationService(TranslationDbContext context, IAiTranslator aiTranslator)
+        public ChapterTranslationService(TranslationDbContext context, ITranslationManager translationManager)
         {
             _context = context;
-            _aiTranslator = aiTranslator;
+            _translationManager = translationManager;
         }
 
-        public async Task TranslateChapterAsync(int chapterId)
+        public async Task TranslateChapterAsync(int chapterId, CancellationToken cancellationToken = default)
         {
             // 1. Lấy thông tin Chapter để biết nó thuộc Story nào
             var chapter = await _context.Chapters
@@ -66,21 +66,24 @@ namespace TranslationSystemAPI.Services
             // 5. Duyệt qua từng đoạn và gọi AI dịch
             foreach (var segment in pendingSegments)
             {
+                cancellationToken.ThrowIfCancellationRequested();
                 try
                 {
-                    // Gửi text kèm theo Prompt chứa Glossary
-                    var translatedText = await _aiTranslator.TranslateAsync(segment.OriginalText, finalSystemPrompt);
+                    // Gọi qua TranslationManager thay vì AI Translator trực tiếp
+                    // Nếu Gemini báo lỗi bạo lực, nó sẽ tự động chạy Groq (Llama 3) ngầm bên dưới
+                    var translatedText = await _translationManager.ExecuteTranslationAsync(segment.OriginalText, finalSystemPrompt);
 
                     segment.TranslatedText = translatedText;
                     await _context.SaveChangesAsync();
 
-                    // Delay để không dính lỗi quá tải request (429) của Gemini Free Tier
+                    // Delay 4s để hạn chế lỗi 429
                     await Task.Delay(4000); 
                 }
                 catch (Exception ex)
                 {
-                    // Ghi log lỗi tại đây nếu cần
-                    throw new Exception($"Gemini API Error: {ex.Message}");
+                    // Bắt lỗi tổng quát (khi cả Gemini và Groq đều tạch, hoặc rớt mạng)
+                    // Ném lỗi ra để Hangfire ghi nhận job FAILED và có thể thử lại sau
+                    throw new Exception($"Lỗi trong quá trình dịch thuật: {ex.Message}");
                 }
             }
         }

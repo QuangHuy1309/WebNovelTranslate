@@ -24,7 +24,17 @@ namespace TranslationSystemAPI.Controllers
         public async Task<IActionResult> GetStories()
         {
             var stories = await _context.Stories
-                .Select(s => new { s.Id, title = s.TitleEn, s.Author, s.Status })
+                // ĐÃ SỬA: Lấy thêm thuộc tính CoverImage và Description
+                .Select(s => new 
+                { 
+                    Id = s.Id, 
+                    title = s.TitleEn, 
+                    Author = s.Author, 
+                    Status = s.Status,
+                    // Chú ý đặt tên là coverImage để khớp với biến ở Frontend (Next.js)
+                    coverImage = "http://localhost:5068" + s.CoverImageUrl, 
+                    description = s.Description
+                })
                 .ToListAsync();
             return Ok(stories);
         }

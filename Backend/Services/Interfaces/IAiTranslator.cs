@@ -2,6 +2,8 @@ namespace TranslationSystemAPI.Services.Interfaces
 {
     public interface IAiTranslator
     {
+        string ProviderName { get; }
+        
         /// <summary>
         /// Gửi text thô sang AI và nhận về kết quả tiếng Việt.
         /// </summary>

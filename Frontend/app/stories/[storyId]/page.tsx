@@ -103,6 +103,7 @@ export default function StoryDetailPage({ params }: { params: Promise<{ storyId:
               height={384} 
               className="w-56 sm:w-72 h-auto object-cover rounded-xl shadow-lg border border-slate-700 shrink-0"
               priority
+              unoptimized={imageUrl.includes("localhost")}
             />
             <div className="flex flex-col flex-1">
               <h1 className="text-4xl sm:text-5xl font-extrabold text-white mb-3 tracking-tight">

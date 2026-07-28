@@ -1,5 +1,6 @@
 using System.Text;
 using System.Text.Json;
+using TranslationSystemAPI.Exceptions;
 using TranslationSystemAPI.Services.Interfaces;
 
 namespace TranslationSystemAPI.Services
@@ -8,6 +9,8 @@ namespace TranslationSystemAPI.Services
     {
         private readonly HttpClient _httpClient;
         private readonly IConfiguration _configuration;
+
+        public string ProviderName => "Gemini";
 
         public GeminiTranslator(HttpClient httpClient, IConfiguration configuration)
         {
@@ -27,7 +30,6 @@ namespace TranslationSystemAPI.Services
 
             var endpoint = $"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={apiKey}";
 
-            // Request Payload đã được thêm safetySettings để không bị chặn khi dịch truyện
             var requestBody = new
             {
                 systemInstruction = new
@@ -61,7 +63,6 @@ namespace TranslationSystemAPI.Services
 
             if (!response.IsSuccessStatusCode)
             {
-                // Bắt lỗi chuẩn từ JSON của Gemini (nếu có) thay vì chỉ in ra Status Code
                 using var errorDoc = JsonDocument.Parse(responseJson);
                 if (errorDoc.RootElement.TryGetProperty("error", out var errorElement) && 
                     errorElement.TryGetProperty("message", out var messageElement))
@@ -72,19 +73,17 @@ namespace TranslationSystemAPI.Services
                 throw new Exception($"Status Code: {(int)response.StatusCode}\n\nResponse:\n{responseJson}");
             }
 
-            // Bóc tách JSON an toàn bằng TryGetProperty
             using var doc = JsonDocument.Parse(responseJson);
             var root = doc.RootElement;
 
-            // 1. Kiểm tra xem có kết quả (candidates) không
             if (root.TryGetProperty("candidates", out var candidates) && candidates.GetArrayLength() > 0)
             {
                 var firstCandidate = candidates[0];
                 
-                // Kiểm tra xem đoạn này có bị Gemini đánh dấu là vi phạm an toàn không
+                // CHÚ Ý: Ném lỗi ContentCensoredException tại đây
                 if (firstCandidate.TryGetProperty("finishReason", out var finishReason) && finishReason.GetString() == "SAFETY")
                 {
-                    throw new Exception("Đoạn text bị Gemini chặn do vi phạm Safety Ratings (finishReason: SAFETY).");
+                    throw new ContentCensoredException("Đoạn text bị Gemini chặn do vi phạm Safety Ratings (finishReason: SAFETY).");
                 }
 
                 if (firstCandidate.TryGetProperty("content", out var content) && 
@@ -96,13 +95,12 @@ namespace TranslationSystemAPI.Services
                 }
             }
 
-            // 2. Nếu request bị chặn toàn bộ (Thường do Prompt)
+            // CHÚ Ý: Ném lỗi ContentCensoredException tại đây (thường do prompt/nội dung quá bạo lực bị chặn từ vòng ngoài)
             if (root.TryGetProperty("promptFeedback", out var feedback))
             {
-                throw new Exception($"Request bị Gemini chặn ở promptFeedback. Raw: {responseJson}");
+                throw new ContentCensoredException($"Request bị Gemini chặn hoàn toàn ở vòng promptFeedback.");
             }
 
-            // 3. Fallback: Nếu JSON không có cấu trúc như dự đoán
             throw new Exception($"Cấu trúc JSON từ Gemini không như mong đợi:\n{responseJson}");
         }
     }

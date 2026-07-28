@@ -13,7 +13,7 @@ static IAsyncPolicy<HttpResponseMessage> GetRetryPolicy()
 {
     return HttpPolicyExtensions
         .HandleTransientHttpError() // Tự động bắt các lỗi mạng 5xx hoặc 408 (Timeout)
-        .OrResult(msg => msg.StatusCode == System.Net.HttpStatusCode.TooManyRequests) // Bắt thêm lỗi 429 của Gemini
+        .OrResult(msg => msg.StatusCode == System.Net.HttpStatusCode.TooManyRequests) // Bắt thêm lỗi 429
         .WaitAndRetryAsync(3, retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt))); 
         // Thử lại tối đa 3 lần. Thời gian chờ tăng dần theo hàm mũ: Lần 1 đợi 2s, lần 2 đợi 4s, lần 3 đợi 8s.
 }
@@ -22,18 +22,26 @@ static IAsyncPolicy<HttpResponseMessage> GetRetryPolicy()
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-builder.Services.AddControllers();
 
 // Đăng ký TranslationDbContext với chuỗi kết nối từ appsettings.json
 builder.Services.AddDbContext<TranslationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
 builder.Services.AddScoped<ITextSegmentationService, TextSegmentationService>();
 builder.Services.AddScoped<IChapterIngestionService, ChapterIngestionService>();
-// Đăng ký Gemini Translator với Typed HttpClient
-builder.Services.AddHttpClient<IAiTranslator, GeminiTranslator>().AddPolicyHandler(GetRetryPolicy());
+
+// --- THAY ĐỔI DI CHO STRATEGY PATTERN Ở ĐÂY ---
+// Đăng ký các Strategy cho AI Translation với Typed HttpClient và Retry Policy
+builder.Services.AddHttpClient<GeminiTranslator>().AddPolicyHandler(GetRetryPolicy());
+builder.Services.AddHttpClient<GroqTranslator>().AddPolicyHandler(GetRetryPolicy());
+
+// Đăng ký Translation Manager để quản lý logic Fallback
+builder.Services.AddScoped<ITranslationManager, TranslationManager>();
+// ----------------------------------------------
 
 // Đăng ký Service dịch Chapter
 builder.Services.AddScoped<IChapterTranslationService, ChapterTranslationService>();
+
 // 1. Thêm dịch vụ Hangfire, sử dụng chung chuỗi kết nối Database hiện tại
 builder.Services.AddHangfire(configuration => configuration
     .SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
@@ -43,6 +51,7 @@ builder.Services.AddHangfire(configuration => configuration
 
 // 2. Thêm Hangfire Server (Worker chạy ngầm)
 builder.Services.AddHangfireServer();
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowNextJsFrontend", policy =>
@@ -52,13 +61,16 @@ builder.Services.AddCors(options =>
               .AllowAnyMethod();
     });
 });
+
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
         // Lệnh này giúp ngắt vòng lặp vô hạn
         options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
     });
+
 var app = builder.Build();
+
 Console.WriteLine($"ContentRoot: {app.Environment.ContentRootPath}");
 Console.WriteLine($"WebRoot: {app.Environment.WebRootPath}");
 

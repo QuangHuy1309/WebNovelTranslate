@@ -5,6 +5,6 @@ namespace TranslationSystemAPI.Services.Interfaces
         /// <summary>
         /// Kích hoạt tiến trình dịch cho toàn bộ các Segment của một Chapter
         /// </summary>
-        Task TranslateChapterAsync(int chapterId);
+        Task TranslateChapterAsync(int chapterId, CancellationToken cancellationToken = default);
     }
 }
