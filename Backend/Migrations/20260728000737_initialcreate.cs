@@ -5,7 +5,7 @@
 namespace TranslationSystemAPI.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class initialcreate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -32,7 +32,8 @@ namespace TranslationSystemAPI.Migrations
                 name: "Chapters",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "int", nullable: false),
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
                     StoryId = table.Column<int>(type: "int", nullable: false),
                     ChapterNumber = table.Column<double>(type: "float", nullable: false),
                     TitleEn = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: true),

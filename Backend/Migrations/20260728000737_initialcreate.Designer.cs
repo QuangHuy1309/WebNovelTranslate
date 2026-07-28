@@ -11,8 +11,8 @@ using TranslationSystemAPI.Data;
 namespace TranslationSystemAPI.Migrations
 {
     [DbContext(typeof(TranslationDbContext))]
-    [Migration("20260726050221_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20260728000737_initialcreate")]
+    partial class initialcreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -27,7 +27,10 @@ namespace TranslationSystemAPI.Migrations
             modelBuilder.Entity("TranslationSystemAPI.Models.Entities.Chapter", b =>
                 {
                     b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<double>("ChapterNumber")
                         .HasColumnType("float");

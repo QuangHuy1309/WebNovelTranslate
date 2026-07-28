@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { getStories, createStory } from '@/services/storyService';
+import { getStories } from '@/services/storyService';
 
 // 1. Định nghĩa cấu trúc dữ liệu cho Truyện
 interface Story {
@@ -36,26 +36,16 @@ export default function StoriesDashboard() {
     };
   }, []);
 
-  const handleCreate = async () => {
-    const title = prompt("Nhập tên truyện mới:");
-    if (!title) return;
-    
-    try {
-      await createStory({ title, author: "Unknown" });
-      const res = await getStories();
-      setStories(res.data);
-    } catch (error) {
-      console.error("Lỗi khi tạo truyện:", error);
-    }
-  };
-
   return (
     <div className="p-8">
       <div className="flex justify-between mb-6">
         <h1 className="text-2xl font-bold">Danh sách Truyện</h1>
-        <button onClick={handleCreate} className="bg-blue-600 text-white px-4 py-2 rounded">
-          + Thêm Truyện Mới
-        </button>
+        <Link 
+          href="/stories/new" 
+          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md font-medium transition-colors flex items-center"
+        >
+          + Thêm Truyện mới
+        </Link>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

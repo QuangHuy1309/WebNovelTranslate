@@ -7,8 +7,8 @@ namespace TranslationSystemAPI.Models.Entities
 {
     public class Chapter
     {
-        [DatabaseGenerated(DatabaseGeneratedOption.None)]
         [Key]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)] // Đảm bảo rằng Id được tự động tăng
         public int Id { get; set; }
 
         public int StoryId { get; set; }

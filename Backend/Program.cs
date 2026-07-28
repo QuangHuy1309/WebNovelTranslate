@@ -59,6 +59,8 @@ builder.Services.AddControllers()
         options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
     });
 var app = builder.Build();
+Console.WriteLine($"ContentRoot: {app.Environment.ContentRootPath}");
+Console.WriteLine($"WebRoot: {app.Environment.WebRootPath}");
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -78,6 +80,9 @@ app.UseHangfireDashboard("/hangfire");
 app.UseCors("AllowNextJsFrontend");
 
 app.UseHttpsRedirection();
+
+// Thêm dòng này để công khai thư mục wwwroot
+app.UseStaticFiles();
 
 app.UseAuthorization();
 

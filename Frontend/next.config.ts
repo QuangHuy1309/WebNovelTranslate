@@ -1,7 +1,17 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  images: {
+    dangerouslyAllowLocalIP: true, // <-- THÊM DÒNG NÀY VÀO ĐÂY
+    remotePatterns: [
+      {
+        protocol: "http",
+        hostname: "localhost",
+        port: "5068",
+        pathname: "/uploads/**",
+      },
+    ],
+  },
 };
 
 export default nextConfig;

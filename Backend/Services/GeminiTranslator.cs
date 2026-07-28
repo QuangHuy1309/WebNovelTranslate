@@ -25,28 +25,28 @@ namespace TranslationSystemAPI.Services
                 throw new InvalidOperationException("Gemini API Key chưa được cấu hình trong appsettings.json.");
             }
 
-            // Endpoint chính thức của Google Gemini REST API
             var endpoint = $"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={apiKey}";
 
-            // Request Payload theo chuẩn JSON Schema của Gemini API
+            // Request Payload đã được thêm safetySettings để không bị chặn khi dịch truyện
             var requestBody = new
             {
                 systemInstruction = new
                 {
-                    parts = new[]
-                    {
-                        new { text = systemPrompt }
-                    }
+                    parts = new[] { new { text = systemPrompt } }
                 },
                 contents = new[]
                 {
                     new
                     {
-                        parts = new[]
-                        {
-                            new { text = sourceText }
-                        }
+                        parts = new[] { new { text = sourceText } }
                     }
+                },
+                safetySettings = new[]
+                {
+                    new { category = "HARM_CATEGORY_HARASSMENT", threshold = "BLOCK_NONE" },
+                    new { category = "HARM_CATEGORY_HATE_SPEECH", threshold = "BLOCK_NONE" },
+                    new { category = "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold = "BLOCK_NONE" },
+                    new { category = "HARM_CATEGORY_DANGEROUS_CONTENT", threshold = "BLOCK_NONE" }
                 }
             };
 
@@ -56,26 +56,54 @@ namespace TranslationSystemAPI.Services
                 "application/json"
             );
 
-           var response = await _httpClient.PostAsync(endpoint, jsonContent);
-
+            var response = await _httpClient.PostAsync(endpoint, jsonContent);
             var responseJson = await response.Content.ReadAsStringAsync();
 
             if (!response.IsSuccessStatusCode)
             {
-                throw new Exception(
-                    $"Status Code: {(int)response.StatusCode}\n\nResponse:\n{responseJson}");
+                // Bắt lỗi chuẩn từ JSON của Gemini (nếu có) thay vì chỉ in ra Status Code
+                using var errorDoc = JsonDocument.Parse(responseJson);
+                if (errorDoc.RootElement.TryGetProperty("error", out var errorElement) && 
+                    errorElement.TryGetProperty("message", out var messageElement))
+                {
+                    throw new Exception($"Gemini API Error ({(int)response.StatusCode}): {messageElement.GetString()}");
+                }
+                
+                throw new Exception($"Status Code: {(int)response.StatusCode}\n\nResponse:\n{responseJson}");
             }
 
-            // Parse kết quả trả về từ Gemini
+            // Bóc tách JSON an toàn bằng TryGetProperty
             using var doc = JsonDocument.Parse(responseJson);
-            var translatedText = doc.RootElement
-                .GetProperty("candidates")[0]
-                .GetProperty("content")
-                .GetProperty("parts")[0]
-                .GetProperty("text")
-                .GetString();
+            var root = doc.RootElement;
 
-            return translatedText?.Trim() ?? string.Empty;
+            // 1. Kiểm tra xem có kết quả (candidates) không
+            if (root.TryGetProperty("candidates", out var candidates) && candidates.GetArrayLength() > 0)
+            {
+                var firstCandidate = candidates[0];
+                
+                // Kiểm tra xem đoạn này có bị Gemini đánh dấu là vi phạm an toàn không
+                if (firstCandidate.TryGetProperty("finishReason", out var finishReason) && finishReason.GetString() == "SAFETY")
+                {
+                    throw new Exception("Đoạn text bị Gemini chặn do vi phạm Safety Ratings (finishReason: SAFETY).");
+                }
+
+                if (firstCandidate.TryGetProperty("content", out var content) && 
+                    content.TryGetProperty("parts", out var parts) && 
+                    parts.GetArrayLength() > 0 &&
+                    parts[0].TryGetProperty("text", out var textElement))
+                {
+                    return textElement.GetString()?.Trim() ?? string.Empty;
+                }
+            }
+
+            // 2. Nếu request bị chặn toàn bộ (Thường do Prompt)
+            if (root.TryGetProperty("promptFeedback", out var feedback))
+            {
+                throw new Exception($"Request bị Gemini chặn ở promptFeedback. Raw: {responseJson}");
+            }
+
+            // 3. Fallback: Nếu JSON không có cấu trúc như dự đoán
+            throw new Exception($"Cấu trúc JSON từ Gemini không như mong đợi:\n{responseJson}");
         }
     }
 }

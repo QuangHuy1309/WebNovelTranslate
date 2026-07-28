@@ -24,7 +24,10 @@ namespace TranslationSystemAPI.Migrations
             modelBuilder.Entity("TranslationSystemAPI.Models.Entities.Chapter", b =>
                 {
                     b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<double>("ChapterNumber")
                         .HasColumnType("float");
