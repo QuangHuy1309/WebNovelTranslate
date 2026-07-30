@@ -35,6 +35,7 @@ namespace TranslationSystemAPI.Controllers
         {
             public int? StoryId { get; set; }
             public string? RawText { get; set; }
+            public bool AutoExtractLore { get; set; }
         }
 
         // 2. CHỈNH SỬA ROUTE: Giữ nguyên tên tham số là {id} để khớp hoàn hảo với route Next.js

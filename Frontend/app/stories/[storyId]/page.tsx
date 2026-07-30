@@ -39,6 +39,10 @@ export default function StoryDetailPage({ params }: { params: Promise<{ storyId:
     chapterId: "",
     rawText: "",
   });
+  
+  // State mới cho Knowledge Graph Checkbox
+  const [autoExtractLore, setAutoExtractLore] = useState(false);
+
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Fetch data khi load trang
@@ -60,13 +64,14 @@ export default function StoryDetailPage({ params }: { params: Promise<{ storyId:
     e.preventDefault();
     setIsSubmitting(true);
     try {
-      // 1. Gọi API và hứng response trả về
+      // 1. Gọi API và hứng response trả về (Đã thêm autoExtractLore vào Payload)
       const response = await axios.post(`http://localhost:5068/api/v1/Chapters/${ingestData.chapterId}/ingest`, {
         storyId: Number(storyId),
         rawText: ingestData.rawText,
+        autoExtractLore: autoExtractLore 
       });
       
-      // 2. Lấy ID thật do Database tự sinh ra (được backend trả về qua trường chapterId)
+      // 2. Lấy ID thật do Database tự sinh ra
       const realDatabaseId = response.data.chapterId;
       
       // 3. Redirect sang Editor bằng ID thật
@@ -82,7 +87,7 @@ export default function StoryDetailPage({ params }: { params: Promise<{ storyId:
   if (isLoading) return <div className="min-h-screen bg-slate-900 text-white p-10">Đang tải dữ liệu...</div>;
   if (!story) return <div className="min-h-screen bg-slate-900 text-white p-10">Không tìm thấy truyện!</div>;
 
-  // Xử lý URL ảnh bìa (nối domain backend nếu là đường dẫn local)
+  // Xử lý URL ảnh bìa
   const imageUrl = story.coverImageUrl?.startsWith("http") 
     ? story.coverImageUrl 
     : `http://localhost:5068${story.coverImageUrl || "/images/default-cover.jpg"}`;
@@ -94,7 +99,7 @@ export default function StoryDetailPage({ params }: { params: Promise<{ storyId:
         {/* CỘT TRÁI: Thông tin truyện & Danh sách chương */}
         <div className={`flex-1 flex flex-col gap-8 ${showIngestForm ? "md:w-2/3" : "w-full"}`}>
           
-          {/* Box 1: Thông tin chi tiết truyện (Đã làm lớn hơn) */}
+          {/* Box 1: Thông tin chi tiết truyện */}
           <div className="bg-slate-800 p-8 rounded-2xl shadow-xl flex flex-col sm:flex-row gap-8 border border-slate-750">
             <div className="w-full md:w-72 flex-shrink-0">
               <div className="relative aspect-[3/4] w-full rounded-xl overflow-hidden shadow-lg border border-gray-700">
@@ -109,7 +114,6 @@ export default function StoryDetailPage({ params }: { params: Promise<{ storyId:
                 />
               </div>
             </div>
-            
             
             <div className="flex flex-col flex-1">
               <h1 className="text-4xl sm:text-5xl font-extrabold text-white mb-3 tracking-tight">
@@ -158,7 +162,7 @@ export default function StoryDetailPage({ params }: { params: Promise<{ storyId:
           </div>
         </div>
 
-        {/* CỘT PHẢI: Form Nạp chương (Chỉ hiện khi bấm nút) */}
+        {/* CỘT PHẢI: Form Nạp chương */}
         {showIngestForm && (
           <div className="md:w-1/3 bg-slate-800 p-8 rounded-2xl shadow-xl h-fit border border-blue-800">
             <h2 className="text-2xl font-bold text-white mb-6">Nạp chương mới (Ingest)</h2>
@@ -179,7 +183,7 @@ export default function StoryDetailPage({ params }: { params: Promise<{ storyId:
                 <label className="block text-base font-medium mb-2 text-slate-300">Raw Text (Tiếng Anh)</label>
                 <textarea
                   required
-                  rows={15}
+                  rows={13}
                   value={ingestData.rawText}
                   onChange={(e) => setIngestData({ ...ingestData, rawText: e.target.value })}
                   className="w-full px-4 py-3 bg-slate-900 border border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none font-mono text-base"
@@ -187,12 +191,32 @@ export default function StoryDetailPage({ params }: { params: Promise<{ storyId:
                 />
               </div>
 
+              {/* KHỐI CHECKBOX TRÍCH XUẤT LORE */}
+              <div className="flex items-start gap-3 p-4 bg-slate-900/80 border border-indigo-900/50 rounded-lg shadow-inner">
+                <input 
+                  type="checkbox" 
+                  id="extractLoreCheckbox"
+                  checked={autoExtractLore}
+                  onChange={(e) => setAutoExtractLore(e.target.checked)}
+                  disabled={isSubmitting}
+                  className="mt-1.5 w-5 h-5 rounded border-slate-600 text-indigo-500 focus:ring-indigo-500 bg-slate-800 cursor-pointer"
+                />
+                <label htmlFor="extractLoreCheckbox" className="cursor-pointer">
+                  <span className="text-sm font-semibold text-indigo-300 block mb-1">
+                    Tự động quét nhân vật / bối cảnh
+                  </span>
+                  <span className="text-xs text-slate-400 block leading-relaxed">
+                    Đánh dấu nếu chương này có nhân vật, kỹ năng hoặc địa danh mới. AI sẽ chạy ngầm để ghi nhớ bối cảnh.
+                  </span>
+                </label>
+              </div>
+
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full py-4 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-800 rounded-lg text-lg font-bold text-white transition-colors shadow-lg"
+                className="w-full py-4 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-600 disabled:text-slate-400 rounded-lg text-lg font-bold text-white transition-colors shadow-lg"
               >
-                {isSubmitting ? "Đang xử lý dữ liệu..." : "Nạp dữ liệu & Mở Editor"}
+                {isSubmitting ? "⏳ Đang xử lý..." : "Nạp dữ liệu & Mở Editor"}
               </button>
             </form>
           </div>

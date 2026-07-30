@@ -69,6 +69,8 @@ builder.Services.AddControllers()
         options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
     });
 
+builder.Services.AddHttpClient<ILoreExtractionService, LoreExtractionService>();
+
 var app = builder.Build();
 
 Console.WriteLine($"ContentRoot: {app.Environment.ContentRootPath}");

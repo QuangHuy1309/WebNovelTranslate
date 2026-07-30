@@ -26,5 +26,7 @@ namespace TranslationSystemAPI.Models.Entities
 
         public ICollection<Chapter> Chapters { get; set; } = new List<Chapter>();
         public ICollection<Glossary> Glossaries { get; set; } = new List<Glossary>();
+        public ICollection<LoreEntity> LoreEntities { get; set; } = new List<LoreEntity>();
+        public ICollection<LoreRelationship> LoreRelationships { get; set; } = new List<LoreRelationship>();
     }
 }

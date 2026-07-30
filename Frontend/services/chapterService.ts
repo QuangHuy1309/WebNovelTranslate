@@ -14,11 +14,12 @@ export const chapterService = {
     return response.data;
   },
 
-  // Hàm nạp chương mới (Đã sửa originalText thành rawText để khớp Backend)
-  ingestChapter: async (chapterId: number, storyId: number, originalText: string): Promise<void> => {
+  // Hàm nạp chương mới (Thêm tham số autoExtractLore)
+  ingestChapter: async (chapterId: number, storyId: number, originalText: string, autoExtractLore: boolean = false): Promise<void> => {
     await api.post(`/Chapters/${chapterId}/ingest`, {
       rawText: originalText,
-      storyId: storyId
+      storyId: storyId,
+      autoExtractLore: autoExtractLore // Truyền cờ này xuống Backend
     });
   },
 
