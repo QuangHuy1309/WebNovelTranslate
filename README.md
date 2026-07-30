@@ -104,7 +104,7 @@ A segment-by-segment workspace allowing editors to review and modify AI-generate
 
 **6. Hangfire Background Job Processing**
 The real-time Hangfire dashboard demonstrating asynchronous job chaining. Heavy tasks like Lore Extraction (via Groq) and AI Translation (via Gemini) are offloaded here to prevent UI blocking.
-![Hangfire Dashboard](assetshinh7.png)
+![Hangfire Dashboard](assets/hinh7.png)
 
 📄 License
 This project is licensed under the MIT License.
