@@ -82,9 +82,6 @@ namespace TranslationSystemAPI.Controllers
                 TotalSegments = segments.Count() 
             });
         }
-        // ====================================================================
-        // CÁC API DƯỚI ĐÂY GIỮ NGUYÊN HOÀN TOÀN CODE CỦA BẠN
-        // ====================================================================
 
         // 2. Kích hoạt AI dịch từng đoạn của Chapter
         [HttpPost("{id}/translate")]
@@ -162,6 +159,22 @@ namespace TranslationSystemAPI.Controllers
                 .ToListAsync(cancellationToken);
 
             return Ok(chapters);
+        }
+        // THÊM API NÀY VÀO ĐỂ FRONTEND LẤY ĐƯỢC CHI TIẾT CHƯƠNG
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetChapter(int id)
+        {
+            var chapter = await _context.Chapters
+                .Include(c => c.Story) // Kéo theo thông tin Story để lấy tên truyện (tùy chọn)
+                .FirstOrDefaultAsync(c => c.Id == id);
+
+            if (chapter == null) return NotFound();
+
+            return Ok(new 
+            {
+                chapterNumber = chapter.ChapterNumber,
+                title = chapter.Story?.TitleVn ?? chapter.Story?.TitleEn
+            });
         }
     }
 }

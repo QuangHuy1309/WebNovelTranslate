@@ -96,15 +96,21 @@ export default function StoryDetailPage({ params }: { params: Promise<{ storyId:
           
           {/* Box 1: Thông tin chi tiết truyện (Đã làm lớn hơn) */}
           <div className="bg-slate-800 p-8 rounded-2xl shadow-xl flex flex-col sm:flex-row gap-8 border border-slate-750">
-            <Image 
-              src={imageUrl} 
-              alt={story.titleEn} 
-              width={288} 
-              height={384} 
-              className="w-56 sm:w-72 h-auto object-cover rounded-xl shadow-lg border border-slate-700 shrink-0"
-              priority
-              unoptimized={imageUrl.includes("localhost")}
-            />
+            <div className="w-full md:w-72 flex-shrink-0">
+              <div className="relative aspect-[3/4] w-full rounded-xl overflow-hidden shadow-lg border border-gray-700">
+                <Image 
+                src={imageUrl} 
+                alt={story.titleEn} 
+                width={288} 
+                height={384} 
+                className="object-cover rounded-xl shadow-lg border border-slate-700 shrink-0"
+                priority
+                unoptimized={imageUrl.includes("localhost")}
+                />
+              </div>
+            </div>
+            
+            
             <div className="flex flex-col flex-1">
               <h1 className="text-4xl sm:text-5xl font-extrabold text-white mb-3 tracking-tight">
                 {story.titleEn}

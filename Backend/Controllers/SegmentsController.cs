@@ -85,6 +85,7 @@ namespace TranslationSystemAPI.Controllers
 
             // 3. Thực hiện cập nhật logic nghiệp vụ
             segment.EditedText = request.EditedText;
+            segment.TranslatedText = request.EditedText;
             
             // 4. Lưu thay đổi vào Database
             await _context.SaveChangesAsync(cancellationToken);
