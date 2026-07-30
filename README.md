@@ -83,29 +83,28 @@ The frontend will run on http://localhost:3000.
 
 **1. Translation Dashboard (Homepage)**
 The central hub for managing all ongoing web novel translation projects, featuring a modern, responsive Dark Mode UI.
-![Translation Dashboard](images/hinh1.png)
+![Translation Dashboard](assets/hinh1.png)
 
 **2. Story Creation Interface**
 A clean form to initialize a new translation project with metadata such as title, author, synopsis, and cover image.
-![Create New Story](images/hinh2.png)
+![Create New Story](assets/hinh2.png)
 
 **3. Story Details & Chapter Management**
 The comprehensive overview page for a specific novel, displaying its synopsis and a grid of available translated chapters.
-![Story Details View](images/hinh3.png)
-![Chapter List](images/hinh4.png)
+![Story Details View](assests/hinh3.png)
+![Chapter List](assets/hinh4.png)
 
 **4. Chapter Ingestion & Knowledge Graph Toggle**
 The ingestion module where editors input raw English text. Notably includes the **Knowledge Graph Extraction toggle**, which conditionally triggers background AI processing to memorize new characters and lore.
-![Chapter Ingestion Form](images/hinh5.png)
+![Chapter Ingestion Form](assets/hinh5.png)
 
 **5. Dual-Pane AI Translation Editor**
 A segment-by-segment workspace allowing editors to review and modify AI-generated translations side-by-side with the original raw text.
-![Translation Editor](images/hinh6.png)
+![Translation Editor](assests/hinh6.png)
 
 **6. Hangfire Background Job Processing**
 The real-time Hangfire dashboard demonstrating asynchronous job chaining. Heavy tasks like Lore Extraction (via Groq) and AI Translation (via Gemini) are offloaded here to prevent UI blocking.
-![Hangfire Dashboard](images/hinh7.png)
-
+![Hangfire Dashboard](assetshinh7.png)
 
 📄 License
 This project is licensed under the MIT License.
